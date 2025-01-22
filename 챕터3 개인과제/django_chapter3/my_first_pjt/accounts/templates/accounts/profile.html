@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h1 class="text-center">{{ person.username }}의 프로필</h1>
+                </div>
+                <div class="card-body">
+                    <div class="profile-info mb-4">
+                        <p><strong>가입일:</strong> {{ person.date_joined|date:"Y-m-d" }}</p>
+                        <p><strong>팔로우:</strong> {{ person.followers.count }} <strong>팔로잉:</strong> {{ person.followings.count }}</p>
+                        <p><strong>작성한 게시글</strong> {{ posts.count }} <strong>개</strong> </p>
+                    </div>
+
+                    <h4 class="mb-3">작성한 목록</h4>
+                    <div class="user-posts">
+                        {% for post in posts %}
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h3 class="card-title">
+                                        <a href="{% url 'posts:post_detail' post.pk %}" class="text-decoration-none">
+                                            {{ post.title }}
+                                        </a>
+                                    </h3>
+                                    <p class="card-text">
+                                        <small class="text-muted">작성일: {{ post.created_at|date:"Y-m-d" }}</small>
+                                    </p>
+                                    <p class="card-text">
+                                        <small class="text-muted">좋아요: {{ post.like_users.count }}</small>
+                                        <small class="text-muted">댓글: {{ post.comments.count }}</small>
+                                    </p>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <p class="text-center">작성한 게시글이 없습니다.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-3">
+                <a href="{% url 'posts:posts' %}" class="btn btn-primary">글 목록으로 돌아가기</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+
+    {% if post.image %}
+        <img src="{{ post.image.url }}">
+    {% endif %}
+
+    <p class="post-content" style="margin-top: 10px; font-size: 1.2em;">{{ post.content }}</p> <!-- 내용 -->
+
+    <form action="{% url 'posts:like' post.pk %}" method="POST"> <!-- 좋아요 버튼 -->
+        {% csrf_token %}
+        <button class="btn btn-link text-danger like-button" > 
+            {% if request.user in post.like_users.all %}
+                <i class="fa-solid fa-heart"></i> <!-- 솔리드 : 채워진 하트 -->
+            {% else %}
+                <i class="fa-regular fa-heart"></i> <!-- 라디얼 : 비어있는 하트 -->
+            {% endif %}
+        </button>
+        <span class="like-count">{{ post.like_users.count }}</span> <!-- 좋아요 수 --> 
+    </form> 
+      
+<hr>
+
+<p class="post-author" style=" font-size: 15px;">
+    [ {{ post.id }} ] {{ post.title }} 　　
+    작성자: <a href="{% url 'accounts:profile' post.author.username %}">{{ post.author.username }}</a>
+</p>
+    <p style="font-size: 15px;">작성일시: {{ post.created_at }} </p>
+    <p style="font-size: 15px;">수정일시: {{ post.updated_at }}</p>
+
+    <div class="button-group" style="display: inline-block;">
+      <a href="{% url 'posts:posts' %}" class="btn btn-primary"> 
+        <i class="fa-solid fa-list"> 글 목록</i> <!-- 목록 버튼 -->
+      </a>
+      {% if request.user == post.author %}
+          <a href="{% url 'posts:update' post.pk %}" class="btn btn-primary"> 
+              <i class="fa-solid fa-pen"></i> <!-- 수정 버튼 -->
+          </a>
+          <form action="{% url 'posts:delete' post.pk %}" method="POST" style="display: inline-block;">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger"> 
+                  <i class="fa-solid fa-trash"></i> <!-- 삭제 버튼 -->
+              </button>
+          </form>
+      {% endif %}
+  </div>
+
+  <br>
+  <hr>
+  <!-- 댓글 목록 -->
+  {% for comment in comments %}
+    <div>
+<!-- 댓글 작성자 -->
+        <a href="{% url 'accounts:profile' comment.user.username %}" style="margin-right: 10px;" class="text-decoration-none">
+            {{ comment.user }}</a>  {{ comment.content }}
+
+        {% if request.user == comment.user %}
+        <!-- 댓글 수정 -->
+        <a href="{% url 'posts:comment_update' post.pk comment.pk %}" class="btn btn-text" style="margin-left: 10px;"> 
+            <i class="fa-solid fa-pen" style="color: rgb(113, 138, 179);"></i> <!-- 수정 버튼 -->
+        </a>
+    
+        <!-- 댓글 삭제 -->
+        <form action="{% url 'posts:comment_delete' post.pk comment.pk %}"  
+                method="POST" 
+                style="display: inline-block; margin-left: -20px;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-text">
+                <i class="fa-solid fa-trash" style="color: rgb(169, 82, 82);"></i> <!-- 삭제 버튼 -->
+            </button>
+        </form>
+    {% endif %}
+    </div>
+  {% empty %}
+    <p>댓글이 없습니다.</p>
+  {% endfor %}
+    
+    <!-- 댓글 작성 폼 -->
+
+    <form action="{% url 'posts:comment_create' post.pk %}" method="POST" style="margin-top: 30px;">
+        {% csrf_token %}
+        {{ comment_form.as_p }}
+        <button class="btn btn-success" style="font-size: 20px;">댓글 쓰기</button>
+    </form>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+          const likeButton = document.querySelector('.like-button');
+  
+          if (likeButton) {
+              likeButton.addEventListener('click', function(event) {
+                  event.preventDefault(); // 기본 폼 제출 방지
+                  const form = this.closest('form'); // 버튼이 속한 폼 찾기
+  
+                  fetch(form.action, {
+                      method: 'POST',
+                      headers: {
+                          'X-CSRFToken': '{{ csrf_token }}', // CSRF 토큰 추가
+                          'Content-Type': 'application/json'
+                      },
+                      body: JSON.stringify({}) // 빈 객체 전송
+                  })
+                  .then(response => {
+                      if (response.ok) {
+                          return response.json();
+                      }
+                      throw new Error('Network response was not ok.');
+                  })
+                  .then(data => {
+                      // 좋아요 수 업데이트
+                      const likeCount = document.querySelector('.like-count'); // 좋아요 수 표시 요소
+                      likeCount.textContent = data.like_count; // 서버에서 받은 좋아요 수로 업데이트
+  
+                      // 하트 색상 변경
+                      if (data.liked) {
+                          this.innerHTML = '<i class="fa-solid fa-heart"></i>'; // 하트 색상 변경
+                      } else {
+                          this.innerHTML = '<i class="fa-regular fa-heart"></i>'; // 하트 색상 변경
+                      }
+                  })
+                  .catch(error => console.error('Error:', error));
+              });
+          }
+      });
+  </script>
+
+{% endblock content %}

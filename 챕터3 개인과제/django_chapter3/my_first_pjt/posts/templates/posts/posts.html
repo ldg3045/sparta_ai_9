@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+
+<h1 style="color: #bcdeff;">글 목록</h1>
+
+{% for post in posts %} <!-- 글 목록 시작 -->
+<div class="post-container">  <!-- 각 게시글마다 새로운 container -->
+    <div class="post-title">
+        <a href="{% url 'posts:post_detail' post.pk %}" 
+           style="text-decoration: none; color: inherit;">
+            {{ post.title }}
+        </a>
+    </div>
+    
+    {% if post.image %}
+    <a href="{% url 'posts:post_detail' post.pk %}">
+        <img src="{{ post.image.url }}" 
+             alt="{{ post.title }}" 
+             class="post-image" 
+             style="margin-top: 15px; cursor: pointer;">
+    </a>
+    {% endif %}
+<!-- 좋아요 버튼과 좋아요 수 표시 -->
+    <form action="{% url 'posts:like' post.pk %}" method="POST">
+        {% csrf_token %}
+        <button class="btn btn-link text-danger like-button">
+            {% if request.user in post.like_users.all %}
+                <i class="fa-solid fa-heart"></i>
+            {% else %}
+                <i class="fa-regular fa-heart"></i>
+            {% endif %}
+        </button>
+        <span class="like-count">{{ post.like_users.count }}</span>
+
+        <!-- 댓글 아이콘과 댓글 수를 링크로 만듦 -->
+        <a href="{% url 'posts:post_detail' post.pk %}" 
+           style="text-decoration: none; color: inherit;">
+            <span class="comment-count" style="margin-left: 10px; position: relative; top: 2.5px; cursor: pointer;">
+                <i class="fa-regular fa-comment"></i>
+                {{ post.comments.count }}
+            </span>
+        </a>
+    </form>
+
+
+</div>
+{% endfor %} <!-- 글 목록 끝 -->
+
+{% if request.user.is_authenticated %} <!-- 로그인 여부 확인 -->
+
+    <a href="{% url 'posts:create' %}">
+        <button 
+        class="btn btn" 
+        style="
+        margin-bottom: 30px; 
+        color: white; 
+        border: 3px solid #305d70; 
+        cursor: pointer;">
+        새로운 글 작성</button>
+    </a>
+
+{% else %}
+
+    <a href="{% url 'accounts:login' %}">
+        <button 
+        class="btn btn" 
+        style="
+        margin-bottom: 30px; 
+        color: white; 
+        border: 3px solid #305d70; 
+        cursor: pointer;">
+        새로운 글 작성</button>
+    </a>
+
+{% endif %} <!-- 로그인 여부 확인 끝 -->
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const deleteForms = document.querySelectorAll('.delete-form');
+
+        deleteForms.forEach(form => {
+            form.addEventListener('submit', function(event) {
+                event.preventDefault(); // 기본 폼 제출 방지
+
+                if (confirm('정말로 삭제하시겠습니까?')) {
+                    fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}', // CSRF 토큰 추가
+                            'Content-Type': 'application/json'
+                        },
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            // 삭제 성공 시 목록 페이지로 리다이렉트
+                            window.location.href = "{% url 'posts:posts' %}"; // 목록 페이지 URL
+                        } else {
+                            throw new Error('삭제 실패');
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+                }
+            });
+        });
+
+        // 좋아요 버튼 처리
+        const likeButtons = document.querySelectorAll('.like-button');
+
+        likeButtons.forEach(button => {
+            button.addEventListener('click', function(event) {
+                event.preventDefault(); // 기본 폼 제출 방지
+                const form = this.closest('form'); // 버튼이 속한 폼 찾기
+
+                fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}', // CSRF 토큰 추가
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({}) // 빈 객체 전송
+                })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error('Network response was not ok.');
+                })
+                .then(data => {
+                    // 좋아요 수 업데이트
+                    const likeCount = document.querySelector('.like-count'); // 좋아요 수 표시 요소
+                    likeCount.textContent = data.like_count; // 서버에서 받은 좋아요 수로 업데이트
+
+                    // 하트 색상 변경
+                    if (data.liked) {
+                        this.innerHTML = '<i class="fa-solid fa-heart"></i>'; // 하트 색상 변경
+                    } else {
+                        this.innerHTML = '<i class="fa-regular fa-heart"></i>'; // 하트 색상 변경
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            });
+        });
+    });
+</script>
+
+{% endblock content %}

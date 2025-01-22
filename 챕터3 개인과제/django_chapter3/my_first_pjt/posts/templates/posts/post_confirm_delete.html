@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="text-align: center; margin-top: 50px;">
+    <h2>삭제 완료</h2>
+    
+    <div style="margin-top: 30px;">
+    <a href="{% url 'posts:posts' %}">
+    <button class="btn btn-primary" style="color: white; border: 2px solid #305d70;">
+    글 목록으로 돌아가기</button></a>
+    </div>
+</div>
+{% endblock content %} 
