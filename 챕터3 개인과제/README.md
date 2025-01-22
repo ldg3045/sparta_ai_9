@@ -99,3 +99,11 @@ python manage.py runserver
     - 댓글 수정
     - 댓글 삭제
 - 게시글 상세 페이지에 댓글 목록 표시
+
+
+---
+
+미구현 항목
+- DRF 
+- 데이터베이스 
+    - SQLite3에서 PostgreSQL or MySQL로 마이그레이션
