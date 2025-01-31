@@ -1,0 +1,13 @@
+{
+    "device_info": {
+        "type": "cpu/cuda/mps",
+        "memory": "사용된 메모리량"
+    },
+    "runs": [
+        {
+            "prompt": "입력 텍스트",
+            "response": "생성된 텍스트",
+            "execution_time": "실행 시간"
+        }
+    ]
+} 
