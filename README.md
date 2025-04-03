@@ -23,6 +23,4 @@
 - SA & READme Guide
   
 ### Chapter 5
-- FE (Django + DTL)
-- AWS & NGINX
 - Final Project
